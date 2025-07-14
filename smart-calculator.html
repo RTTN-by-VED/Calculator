@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Price & Quantity Calculator - Calculate Cost and Weight</title>
+    <meta name="description" content="Use our smart calculator to easily determine the price of an item by weight (grams) or calculate how much quantity you can buy for a specific amount. Perfect for groceries, bulk purchases, and more!">
+    <meta name="keywords" content="price calculator, quantity calculator, weight calculator, cost per gram, cost per kg, grams for money, unit price, smart calculator, online calculator, shopping helper">
+    <meta name="author" content="Your Name or Company Name">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg-start: #6a11cb; /* deep purple */
+            --primary-bg-end: #2575fc;   /* deep blue */
+            --card-bg: rgba(255, 255, 255, 0.98);
+            --text-dark: #333;
+            --text-light: #555;
+            --border-light: #e0e0e0;
+            --focus-border: #2575fc; /* blue focus */
+            --button-primary-start: #FF6B6B; /* deep orange */
+            --button-primary-end: #Ff9f5f;   /* light orange */
+            --button-secondary-start: #11998e; /* green-turquoise */
+            --button-secondary-end: #38ef7d;   /* light green */
+            --success-color: #28a745; /* green result */
+            --error-color: #dc3545;   /* red error */
+            --tab-active-bg: #f0f8ff; /* light blue for active tab */
+            --tab-inactive-text: #999;
+        }
+
+        /* General Styling */
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-bg-start) 0%, var(--primary-bg-end) 100%);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: var(--text-dark);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Background Animation */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent);
+            background-size: 40px 40px;
+            animation: backgroundMove 60s linear infinite;
+            opacity: 0.2;
+            z-index: -1;
+        }
+
+        @keyframes backgroundMove {
+            from { background-position: 0 0; }
+            to { background-position: 4000px 0; }
+        }
+
+        /* Main container that will hold both calculators */
+        .main-container {
+            background-color: var(--card-bg);
+            border-radius: 25px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            padding: 40px;
+            width: 850px; /* Ample width for two calculators */
+            max-width: 98%;
+            text-align: center;
+            position: relative;
+            animation: popIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Global Title */
+        .global-title {
+            color: var(--primary-bg-start);
+            margin-bottom: 30px;
+            font-size: 2.8em;
+            font-weight: 800;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.15);
+            position: relative;
+            padding-bottom: 15px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .global-title::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 6px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            border-radius: 3px;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background-color: var(--border-light);
+            border-radius: 15px;
+            padding: 5px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            background-color: transparent;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--tab-inactive-text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            outline: none;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(45deg, var(--primary-bg-start), var(--primary-bg-end));
+            color: var(--card-bg);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .tab-button:hover:not(.active) {
+            color: var(--primary-bg-end);
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Calculator Container (inside each tab) */
+        .calculator-content {
+            display: flex;
+            justify-content: space-around;
+            gap: 30px;
+            flex-wrap: wrap; /* To wrap on smaller screens */
+        }
+
+        .calculator-box {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 35px;
+            width: 400px; /* Fixed width for each calculator */
+            max-width: 100%;
+            text-align: center;
+            border: 1px solid var(--border-light);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 0.8s ease forwards;
+            opacity: 0;
+            flex-shrink: 0; /* Prevent shrinking */
+            flex-grow: 1; /* Allow to grow if space available */
+            display: none; /* Hidden by default */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calculator-box.active {
+            display: block; /* Show when active */
+        }
+
+        .calculator-box:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .calculator-box h2 {
+            color: var(--primary-bg-start);
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.08);
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .calculator-box h2::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            border-radius: 2px;
+        }
+
+        /* Input Group */
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .input-group input[type="number"] {
+            width: calc(100% - 24px);
+            padding: 14px 12px;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 1.2em;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            outline: none;
+        }
+
+        .input-group input[type="number"]:focus {
+            border-color: var(--focus-border);
+            box-shadow: 0 0 0 4px rgba(37, 117, 252, 0.2);
+        }
+
+        /* Button Styling */
+        .calculator-button {
+            background: linear-gradient(45deg, var(--button-primary-start), var(--button-primary-end));
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-size: 1.3em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+            width: 100%;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            outline: none;
+        }
+
+        .calculator-button.secondary {
+            background: linear-gradient(45deg, var(--button-secondary-start), var(--button-secondary-end));
+            box-shadow: 0 8px 20px rgba(17, 153, 142, 0.3);
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-5px);
+        }
+
+        .calculator-button.secondary:hover {
+             background: linear-gradient(45deg, var(--button-secondary-end), var(--button-secondary-start));
+             box-shadow: 0 12px 25px rgba(17, 153, 142, 0.4);
+        }
+
+        .calculator-button:hover {
+            box-shadow: 0 12px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .calculator-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: skewX(-30deg);
+            transition: all 0.5s ease;
+        }
+
+        .calculator-button:hover::before {
+            left: 100%;
+        }
+
+        /* Result Display */
+        .result {
+            margin-top: 30px;
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--success-color);
+            background-color: #e6ffe6;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--success-color);
+            display: none;
+            word-wrap: break-word;
+            animation: fadeIn 0.8s ease forwards;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Error Result */
+        .result.error {
+            color: var(--error-color);
+            background-color: #ffe6e6;
+            border-color: var(--error-color);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.2);
+        }
+
+        /* Result Fade-in Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hide input number arrows */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 900px) {
+            .main-container {
+                width: 95%;
+                padding: 30px;
+            }
+            .calculator-content {
+                flex-direction: column;
+                align-items: center;
+            }
+            .calculator-box {
+                width: 100%;
+                max-width: 400px; /* Max width in single column */
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .main-container {
+                padding: 20px;
+            }
+            .global-title {
+                font-size: 2.2em;
+                margin-bottom: 20px;
+            }
+            .calculator-box h2 {
+                font-size: 1.8em;
+            }
+            .input-group label {
+                font-size: 1em;
+            }
+            .input-group input[type="number"],
+            .calculator-button {
+                font-size: 1.1em;
+                padding: 12px;
+            }
+            .result {
+                font-size: 1.4em;
+                padding: 15px;
+            }
+            .tab-button {
+                font-size: 1em;
+                padding: 12px 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .main-container {
+                padding: 15px;
+            }
+            .global-title {
+                font-size: 1.8em;
+            }
+            .calculator-box h2 {
+                font-size: 1.6em;
+            }
+            .input-group input[type="number"],
+            .calculator-button {
+                font-size: 1em;
+                padding: 10px;
+            }
+            .result {
+                font-size: 1.2em;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1 class="global-title">Smart Price & Quantity Calculator</h1>
+
+        <div class="tab-nav">
+            <button class="tab-button active" onclick="showCalculator('price')">Smart Price Calculator</button>
+            <button class="tab-button" onclick="showCalculator('quantity')">How Much Quantity Will I Get?</button>
+        </div>
+
+        <div class="calculator-content">
+            <div id="priceCalculator" class="calculator-box active">
+                <h2>Smart Price Calculator</h2>
+                <div class="input-group">
+                    <label for="pricePerKg_priceCalc">Item Price per Kilogram (₹):</label>
+                    <input type="number" id="pricePerKg_priceCalc" placeholder="e.g., 100.00" min="0" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label for="weightInGrams_priceCalc">Weight in Grams (grams):</label>
+                    <input type="number" id="weightInGrams_priceCalc" placeholder="e.g., 400" min="0" step="1">
+                </div>
+                <button class="calculator-button" onclick="calculatePrice()">Calculate</button>
+                <div class="result" id="result_priceCalc"></div>
+            </div>
+
+            <div id="quantityCalculator" class="calculator-box">
+                <h2>How Much Quantity Will I Get?</h2>
+                <div class="input-group">
+                    <label for="pricePerKg_quantityCalc">Item Price per Kilogram (₹):</label>
+                    <input type="number" id="pricePerKg_quantityCalc" placeholder="e.g., 100.00" min="0" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label for="amountToSpend_quantityCalc">How much money do you have (₹)?</label>
+                    <input type="number" id="amountToSpend_quantityCalc" placeholder="e.g., 70.00" min="0" step="0.01">
+                </div>
+                <button class="calculator-button secondary" onclick="calculateQuantity()">Calculate</button>
+                <div class="result" id="result_quantityCalc"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        function showCalculator(calculatorId) {
+            const calculators = document.querySelectorAll('.calculator-box');
+            const buttons = document.querySelectorAll('.tab-button');
+
+            calculators.forEach(calc => {
+                calc.classList.remove('active');
+                // Hide result when tab is switched
+                calc.querySelector('.result').style.display = 'none';
+                // Reset input field borders
+                calc.querySelectorAll('input').forEach(input => {
+                    input.style.borderColor = 'var(--border-light)';
+                });
+            });
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(calculatorId + 'Calculator').classList.add('active');
+            event.currentTarget.classList.add('active'); // Activate the clicked button
+        }
+
+        // JavaScript for the first calculator (Price Calculator)
+        function calculatePrice() {
+            const pricePerKgInput = document.getElementById('pricePerKg_priceCalc');
+            const weightInGramsInput = document.getElementById('weightInGrams_priceCalc');
+            const resultDiv = document.getElementById('result_priceCalc');
+
+            const pricePerKg = parseFloat(pricePerKgInput.value);
+            const weightInGrams = parseFloat(weightInGramsInput.value);
+
+            resultDiv.classList.remove('error'); // Remove old error or success class
+
+            if (isNaN(pricePerKg) || isNaN(weightInGrams) || pricePerKg < 0 || weightInGrams < 0) {
+                resultDiv.style.display = 'block';
+                resultDiv.classList.add('error');
+                resultDiv.textContent = 'Please enter valid numbers (zero or greater).';
+                if (isNaN(pricePerKg) || pricePerKg < 0) pricePerKgInput.style.borderColor = 'var(--error-color)';
+                if (isNaN(weightInGrams) || weightInGrams < 0) weightInGramsInput.style.borderColor = 'var(--error-color)';
+                return;
+            } else {
+                pricePerKgInput.style.borderColor = 'var(--border-light)';
+                weightInGramsInput.style.borderColor = 'var(--border-light)';
+            }
+
+            const pricePerGram = pricePerKg / 1000;
+            const totalPrice = pricePerGram * weightInGrams;
+
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = `An item weighing ${weightInGrams} grams will cost approximately ₹${totalPrice.toFixed(2)}.`;
+        }
+
+        // JavaScript for the second calculator (Quantity Calculator)
+        function calculateQuantity() {
+            const pricePerKgInput = document.getElementById('pricePerKg_quantityCalc');
+            const amountToSpendInput = document.getElementById('amountToSpend_quantityCalc');
+            const resultDiv = document.getElementById('result_quantityCalc');
+
+            const pricePerKg = parseFloat(pricePerKgInput.value);
+            const amountToSpend = parseFloat(amountToSpendInput.value);
+
+            resultDiv.classList.remove('error'); // Remove previous error class
+
+            if (isNaN(pricePerKg) || isNaN(amountToSpend) || pricePerKg <= 0 || amountToSpend < 0) {
+                resultDiv.style.display = 'block';
+                resultDiv.classList.add('error');
+                resultDiv.textContent = 'Please enter valid numbers. Item price must be greater than zero.';
+                if (isNaN(pricePerKg) || pricePerKg <= 0) pricePerKgInput.style.borderColor = 'var(--error-color)';
+                if (isNaN(amountToSpend) || amountToSpend < 0) amountToSpendInput.style.borderColor = 'var(--error-color)';
+                return;
+            } else {
+                pricePerKgInput.style.borderColor = 'var(--border-light)';
+                amountToSpendInput.style.borderColor = 'var(--border-light)';
+            }
+
+            const quantityPerRupee = 1 / pricePerKg;
+            const totalQuantityKg = quantityPerRupee * amountToSpend;
+            const totalQuantityGrams = totalQuantityKg * 1000;
+
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = `You will get approximately ${totalQuantityGrams.toFixed(2)} grams of the item for ₹${amountToSpend.toFixed(2)}.`;
+        }
+
+        // Handle input field focus and blur events with separate IDs
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.style.borderColor = 'var(--focus-border)';
+                });
+                input.addEventListener('blur', function() {
+                    this.style.borderColor = 'var(--border-light)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
